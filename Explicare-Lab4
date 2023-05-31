@@ -1,0 +1,55 @@
+Mediator pattern:
+Mediator este un model de design comportamental care ne permite să reducem dependențele haotice dintre obiecte. Modelul restricționează comunicațiile directe între obiecte și le forțează să colaboreze numai prin intermediul unui obiect mediator.
+Pentru a implementa acest design pattern am creat un email service care are funcţia de a notifica utilizatorul despre crearea unui task nou.
+  
+  
+      import { Injectable } from '@nestjs/common';
+      @Injectable()
+      export class EmailService {
+          async sendEmail(recipient: string, subject: string, body: string): Promise<void> {
+              // Implementation of the email sending functionality using a third-party library or API
+              // You would typically use an external library or API to send the email here
+              console.log(`Sending email to ${recipient}`);
+              console.log(`Subject: ${subject}`);
+              console.log(`Body: ${body}`);
+              // Code to send the email...
+              console.log('Email sent!');
+          }
+      }
+      
+Am folosit classa dată în TaskMediator, care acționează ca intermediar între TasksService și EmailService. El preia responsabilitatea de a crea și actualiza sarcini, iar în același timp trimite notificări prin email către utilizator.
+
+      
+      @Injectable()
+      export class TaskMediator {
+        private emailService: EmailService;
+        private tasksService: TasksService;
+
+        constructor(emailService: EmailService, tasksService: TasksService) {
+          this.emailService = emailService;
+          this.tasksService = tasksService;
+        }
+
+        async createTaskWithNotification(
+          createTaskDto: CreateTaskDto,
+          user: User,
+        ): Promise<Task> {
+          const task = await this.tasksService.createTask(createTaskDto, user);
+          const emailSubject = 'New Task Created';
+          const emailBody = `A new task with title "${task.title}" has been created.`;
+          await this.emailService.sendEmail(user.mail, emailSubject, emailBody);
+          return task;
+        }
+
+        async updateTaskStatusWithNotification(
+          id: string,
+          user: User,
+          status: TaskStatus,
+        ): Promise<Task> {
+          const task = await this.tasksService.updateTaskStatus(id, user, status);
+          const emailSubject = 'Task Status Updated';
+          const emailBody = `The status of task with title "${task.title}" has been updated to "${status}".`;
+          await this.emailService.sendEmail(user.mail, emailSubject, emailBody);
+          return task;
+        }
+      }
