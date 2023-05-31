@@ -19,7 +19,6 @@ Pentru a implementa acest design pattern am creat un email service care are func
       
 Am folosit classa dată în TaskMediator, care acționează ca intermediar între TasksService și EmailService. El preia responsabilitatea de a crea și actualiza sarcini, iar în același timp trimite notificări prin email către utilizator.
 
-      
       @Injectable()
       export class TaskMediator {
         private emailService: EmailService;
@@ -53,3 +52,101 @@ Am folosit classa dată în TaskMediator, care acționează ca intermediar într
           return task;
         }
       }
+      
+ 
+ Observer pattern este un model de design comportamental care vă permite să definiți un mecanism de abonament pentru a notifica mai multe obiecte despre orice eveniment care se întâmplă obiectului pe care îl observă.
+       
+       export interface Observer {
+          update(task: Task): void;
+        }
+
+Interfaţa dată este apelată de fiecare dată când creăm un task nou:
+
+      export class Observable {
+        private observers: Observer[] = [];
+
+        addObserver(observer: Observer): void {
+          this.observers.push(observer);
+        }
+
+        notifyObservers(task: Task): void {
+          this.observers.forEach((observer) => {
+            observer.update(task);
+          });
+        }
+      }
+      
+Clasa TasksService implementează interfața Observer și, prin urmare, acționează ca un observator. În constructor, TasksService primește și o instanță a clasei Observable, pe care o adaugă ca observator în lista de observatori a acesteia. 
+Atunci când este creată o nouă sarcină prin apelul metodei createTask(), TasksService notifică observatorii prin apelul metodei notifyObservers(task) a instanței Observable. 
+
+       async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
+        const { title, description } = createTaskDto;
+
+        const task = this.tasksRepository.create({
+          title,
+          description,
+          status: TaskStatus.OPEN,
+          user,
+        });
+
+        await this.tasksRepository.save(task);
+        this.observable.notifyObservers(task);
+        return task;
+      }
+      
+        update(task: Task): void {
+         console.log(`Task with ID "${task.title}" has been created.`);
+        }
+ 
+ Command pattern este un model de design comportamental care transformă o solicitare într-un obiect autonom care conține toate informațiile despre cerere. 
+ Această transformare vă permite să treceți cererile ca argumente de metodă, să întârziați sau să puneți în coadă execuția unei cereri și să suportați operațiuni care nu pot fi anulate.
+ 
+ Pentru a implementa pattern-ul dat iniţializăm interfaţa Command, care va fi apelată de atâtea ori de câte ori creăm un User nou:
+      
+      export interface Command {
+        execute(): Promise<void>;
+      }
+      
+ 
+ Implimentăm comanda execute prin incapsularea în aceasta a metodei signUp.
+ 
+      export class SignUpCommand implements Command {
+      constructor(
+        private authService: AuthService,
+        private authCredentialsDto: AuthCredentialsDto,
+      ) {}
+
+      async execute(): Promise<void> {
+        await this.authService.signUp(this.authCredentialsDto);
+      }
+    }
+    
+   
+   
+Atfel noi nu apelăm direct metoda signUp din Service, noi apelăm metoda dată care este incapsulată în classa SignUpCommand, prin intermediul interfeţei execute():
+      
+      @Post('/signup')
+      async signUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
+        // return this.authService.signUp(authCredentialsDto);
+        const command = new SignUpCommand(this.authService, authCredentialsDto);
+        return await command.execute();
+      }
+Arfel, folosind pattern-ul Command, încapsulăm operațiunile de înscriere și conectare ca comenzi separate, fără a conencta direct controlerul cu metodele de service.
+    
+
+
+
+      
+ 
+ 
+      
+      
+
+ 
+
+ 
+
+
+ 
+ 
+ 
