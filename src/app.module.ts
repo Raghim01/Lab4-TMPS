@@ -8,16 +8,21 @@ import { AuthModule } from './auth/auth.module';
     TasksModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
+      host: 'ep-flat-thunder-72057510.us-east-1.postgres.vercel-storage.com',
       port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'task-management',
+      username: 'default',
+      password: 'T41LVWFPCnws',
+      database: 'verceldb',
+      ssl: true, // Ensure SSL is enabled for Vercel
+      extra: {
+        ssl: {
+          rejectUnauthorized: false, // For self-signed certificates, remove it in production
+        },
+      },
+      synchronize: true, // It's recommended to disable synchronize in production
       autoLoadEntities: true,
-      synchronize: true,
     }),
-    AuthModule
+    AuthModule,
   ],
 })
-export class AppModule { }
-
+export class AppModule {}
