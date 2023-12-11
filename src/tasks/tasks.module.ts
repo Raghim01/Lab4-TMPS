@@ -8,6 +8,7 @@ import { EmailServiceAdapter } from './emailServiceAdapter';
 import { EmailService } from './services/email.service';
 import { Observable } from './controllers/observable';
 import { TaskMediator } from './services/task.mediator';
+import { NotificationService } from './interfaces/notification.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Task]), AuthModule],

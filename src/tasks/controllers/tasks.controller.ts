@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { TasksService } from '../services/tasks.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
@@ -23,6 +24,8 @@ import { TaskMediator } from 'tasks/services/task.mediator';
 @Controller('tasks')
 @UseGuards(AuthGuard())
 export class TasksController {
+  private logger = new Logger('TasksController');
+
   constructor(
     private tasksService: TasksService,
     private taskMediator: TaskMediator,
@@ -33,6 +36,11 @@ export class TasksController {
     @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: User,
   ): Promise<Task> {
+    this.logger.verbose(
+      `User "${user.username}" created a task. Data: ${JSON.stringify(
+        createTaskDto,
+      )}`,
+    );
     // return this.tasksService.createTask(createTaskDto, user);
     return this.taskMediator.createTaskWithNotification(createTaskDto, user);
   }
@@ -42,6 +50,7 @@ export class TasksController {
     @Query() filterDto: GetTasksFilterDto,
     @GetUser() user: User,
   ): Promise<Task[]> {
+    this.logger.verbose(`User "${user.username}" retrieving all tasks`);
     return this.tasksService.getAllTasks(filterDto, user);
   }
 
@@ -51,8 +60,11 @@ export class TasksController {
   }
 
   @Delete('/delete/:id')
-  deleteTaskById(@Param('id') id: string): Promise<void> {
-    return this.tasksService.deleteTaskById(id);
+  deleteTaskById(
+    @Param('id') id: string,
+    @GetUser() user: User,
+  ): Promise<void> {
+    return this.tasksService.deleteTaskById(id, user);
   }
 
   @Patch('/:id/status')
@@ -62,6 +74,7 @@ export class TasksController {
     @GetUser() user: User,
   ): Promise<Task> {
     const { status } = updateTaskStatus;
-    return this.tasksService.updateTaskStatus(id, user, status);
+    // return this.tasksService.updateTaskStatus(id, user, status);
+    return this.taskMediator.updateTaskStatusWithNotification(id, user, status);
   }
 }

@@ -23,7 +23,7 @@ export class TaskMediator {
     const task = await this.tasksService.createTask(createTaskDto, user);
     const emailSubject = 'New Task Created';
     const emailBody = `A new task with title "${task.title}" has been created.`;
-    await this.emailService.sendEmail(user.mail, emailSubject, emailBody);
+    await this.emailService.sendEmail(user.username, emailSubject, emailBody);
     return task;
   }
 
@@ -35,7 +35,7 @@ export class TaskMediator {
     const task = await this.tasksService.updateTaskStatus(id, user, status);
     const emailSubject = 'Task Status Updated';
     const emailBody = `The status of task with title "${task.title}" has been updated to "${status}".`;
-    await this.emailService.sendEmail(user.mail, emailSubject, emailBody);
+    await this.emailService.sendEmail(user.username, emailSubject, emailBody);
     return task;
   }
 }

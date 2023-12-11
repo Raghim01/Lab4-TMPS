@@ -1,14 +1,34 @@
 import { Injectable } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-    async sendEmail(recipient: string, subject: string, body: string): Promise<void> {
-        // Implementation of the email sending functionality using a third-party library or API
-        // You would typically use an external library or API to send the email here
-        console.log(`Sending email to ${recipient}`);
-        console.log(`Subject: ${subject}`);
-        console.log(`Body: ${body}`);
-        // Code to send the email...
-        console.log('Email sent!');
-    }
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'rayboww.rn@gmail.com',
+        pass: 'razpltdobjoakvvj',
+      },
+    });
+  }
+
+  async sendEmail(
+    recipient: string,
+    subject: string,
+    body: string,
+  ): Promise<void> {
+    const mailOptions: nodemailer.SendMailOptions = {
+      from: 'raghimnaghiev@gmail.com',
+      to: recipient,
+      subject,
+      text: body,
+    };
+
+    await this.transporter.sendMail(mailOptions);
+  }
 }

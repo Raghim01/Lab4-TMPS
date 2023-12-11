@@ -6,9 +6,9 @@ import { Task } from '../entities/task.entity';
 import { Repository } from 'typeorm';
 import { GetTasksFilterDto } from 'tasks/dto/get-task-filter.dto';
 import { User } from 'auth/entities/user.entity';
-import { EmailServiceAdapter } from 'tasks/emailServiceAdapter';
 import { Observer } from '../interfaces/observer';
 import { Observable } from '../controllers/observable';
+import { EmailServiceAdapter } from 'tasks/emailServiceAdapter';
 
 @Injectable()
 export class TasksService implements Observer {
@@ -16,9 +16,11 @@ export class TasksService implements Observer {
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
     private readonly observable: Observable,
+    private readonly notificationService: EmailServiceAdapter,
   ) {
     this.observable.addObserver(this);
   }
+
   async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
     const { title, description } = createTaskDto;
 
@@ -63,13 +65,16 @@ export class TasksService implements Observer {
     return tasks;
   }
 
-  async deleteTaskById(id: string): Promise<void> {
+  async deleteTaskById(id: string, user: User): Promise<void> {
     const found = await this.tasksRepository.delete(id);
     if (!found) {
       throw new NotFoundException(`Task with this '${id}' don't exist.`);
-    } else {
-      console.log('Task was successfully deleted!');
     }
+    await this.notificationService.sendNotification(
+      user.username,
+      `Task deleted`,
+      `User "${user.username}" deleted one task.`,
+    );
   }
 
   async updateTaskStatus(
